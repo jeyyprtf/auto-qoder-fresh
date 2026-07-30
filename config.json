@@ -1,0 +1,10 @@
+{
+  "worker_url": "https://mail-api.jujukaizen.web.id",
+  "worker_domain": "jujukaizen.web.id",
+  "ai_api_key": "",
+  "ai_base_url": "https://ai.sumopod.com/v1",
+  "ai_model": "gemini/gemini-2.5-flash",
+  "ninerouter_db": "~/.9router/db/data.sqlite",
+  "screenshots_dir": "screenshots",
+  "credentials_file": "qoder_accounts.json"
+}
