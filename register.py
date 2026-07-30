@@ -179,33 +179,25 @@ async def register_and_verify(
             await asyncio.sleep(2)  # wait for validation
             log("   ✅ Password filled")
 
-            # Try clicking Continue button - scroll then JS click for reliability
-            await asyncio.sleep(2)  # critical: wait for UI to settle after fill
-            continue_clicked = await page.evaluate("""() => {
-                const btn = document.querySelector('button[type="submit"], .ant-btn-primary');
-                if (btn) {
-                    btn.scrollIntoView({block: 'center', behavior: 'instant'});
-                    return new Promise(resolve => {
-                        setTimeout(() => { btn.click(); resolve(true); }, 500);
-                    });
+            # Submit form via Enter key (most reliable, clicks correct submit button)
+            await asyncio.sleep(2)
+            await pw_input.press("Enter")
+            await asyncio.sleep(3)
+            log("   📤 Submitted (Enter key)")
+
+            # Double-check: also try JS click to find+click the real Continue button
+            await page.evaluate("""() => {
+                const all = document.querySelectorAll('button, [role="button"], .ant-btn');
+                for (const el of all) {
+                    const txt = el.textContent.trim().toLowerCase();
+                    if (txt === 'continue' || txt === 'sign up' || txt === 'submit') {
+                        el.scrollIntoView({block: 'center'});
+                        setTimeout(() => el.click(), 200);
+                        return el.textContent.trim();
+                    }
                 }
-                return false;
+                return null;
             }""")
-            await asyncio.sleep(3)  # wait after click before checking
-            if continue_clicked:
-                log("   📤 Submitted (JS click)")
-            else:
-                try:
-                    continue_btn = page.locator('button:has-text("Continue"), button[type="submit"]').first
-                    await continue_btn.scroll_into_view_if_needed()
-                    await asyncio.sleep(1)
-                    await continue_btn.click(force=True, timeout=5000)
-                    log("   📤 Submitted (Playwright click)")
-                except Exception as e:
-                    log(f"   ⚠️ Playwright click failed: {e}, trying Enter key...")
-                    await asyncio.sleep(1)
-                    await pw_input.press("Enter")
-                    log("   📤 Submitted (Enter key)")
         except Exception as e:
             log(f"   ⚠️ Playwright fill failed: {e}, trying JS fallback...")
             await asyncio.sleep(2)
