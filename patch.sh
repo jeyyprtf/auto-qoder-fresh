@@ -11,10 +11,17 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-for f in register.py cli.py otp.py; do
-    SRC="$SCRIPT_DIR/$f"
-    DST="$PACKAGE_DIR/$f"
+for pair in "register.py:" "cli.py:" "otp.py:" "cli_login.py:auth"; do
+    SRC_NAME="${pair%%:*}"
+    SUBDIR="${pair##*:}"
+    SRC="$SCRIPT_DIR/$SRC_NAME"
+    if [ "$SUBDIR" = "$SRC_NAME" ]; then
+        DST="$PACKAGE_DIR/$SRC_NAME"
+    else
+        DST="$PACKAGE_DIR/$SUBDIR/$SRC_NAME"
+    fi
     if [ -f "$SRC" ]; then
+        mkdir -p "$(dirname "$DST")"
         cp "$DST" "$DST.bak.$(date +%s)" 2>/dev/null || true
         cp "$SRC" "$DST"
         echo "✅ Patched $DST"
