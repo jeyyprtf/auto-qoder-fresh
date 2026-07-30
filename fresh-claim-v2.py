@@ -6,9 +6,15 @@ WARP_CLI = "warp-cli"
 
 def warp_switch():
     print("🔄 Switching WARP IP...")
-    subprocess.run([WARP_CLI, "connect"], check=True)
-    subprocess.run([WARP_CLI, "set", "warp", "on"], check=True)
-    print("✅ WARP connected")
+    try:
+        subprocess.run(["warp-cli", "disconnect"], check=True)
+    except: pass
+    try:
+        subprocess.run(["warp-cli", "connect"], check=True)
+    except Exception as e:
+        print(f"⚠️ WARP skip: {e}")
+    time.sleep(5)
+    print("✅ Ready")
 
 def run_qoder(cmd):
     print(f"Running: {' '.join(cmd)}")
