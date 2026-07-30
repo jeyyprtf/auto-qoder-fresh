@@ -2,6 +2,26 @@
 """Qoder Fresh Autoregist v4 - Slow & Patient"""
 import subprocess
 import time
+import sys
+from pathlib import Path
+
+def patch_register_py():
+    """Replace installed register.py with our fixed version."""
+    script_dir = Path(__file__).parent
+    patch_file = script_dir / "register.py"
+    if not patch_file.exists():
+        print("⚠️ register.py patch not found, skipping")
+        return True
+    try:
+        import qoder_autopilot
+        pkg_dir = Path(qoder_autopilot.__file__).parent
+        target = pkg_dir / "register.py"
+        target.write_bytes(patch_file.read_bytes())
+        print(f"✅ Patched {target}")
+        return True
+    except Exception as e:
+        print(f"❌ Patch failed: {e}")
+        return False
 
 def warp_switch():
     print("🔄 Switching WARP IP...")
@@ -13,6 +33,8 @@ def warp_switch():
     print("✅ Ready\n")
 
 if __name__ == "__main__":
+    if not patch_register_py():
+        sys.exit(1)
     warp_switch()
     print("🚀 Starting 5 fresh accounts (slow mode)...\n")
     
