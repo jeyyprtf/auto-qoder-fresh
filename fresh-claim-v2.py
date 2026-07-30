@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Qoder Fresh Autoregist v3 - Simple & Robust"""
+"""Qoder Fresh Autoregist v4 - Slow & Patient"""
 import subprocess
 import time
 
@@ -14,24 +14,23 @@ def warp_switch():
 
 if __name__ == "__main__":
     warp_switch()
-    print("🚀 Starting 10 fresh accounts...\n")
+    print("🚀 Starting 5 fresh accounts (slow mode)...\n")
     
-    for i in range(1, 11):
+    for i in range(1, 6):
         print("="*70)
-        print(f"Account #{i} / 10")
+        print(f"Account #{i} / 5")
         print("="*70)
+        print("(Browser will open - solve captcha manually)")
+        print()
         
         try:
-            # Register via browser
+            # Register via browser - only register, no claim command
             subprocess.run([
                 "qoder-autopilot", "-n", "1",
                 "--format", "json"
-            ], check=True, timeout=600)
+            ], check=True, timeout=900)
             
-            # Claim trial  
-            subprocess.run(["qoder-autopilot", "claim"], check=True, timeout=600)
-            
-            print(f"\n✅ Account #{i} SUCCESS\n")
+            print(f"\n✅ Account #{i} registration done\n")
             
         except subprocess.CalledProcessError:
             print(f"❌ FAILED account {i}\n")
@@ -39,14 +38,15 @@ if __name__ == "__main__":
             print("\n⚠️ Interrupted by user")
             break
         
-        if i < 10:
-            delay = 45
+        if i < 5:
+            delay = 120  # 2 minutes between accounts
             print(f"⏳ Waiting {delay}s before account {i+1}...")
+            print("   (This gives time to collect PAT if needed)")
             time.sleep(delay)
             print()
     
     print("="*70)
     print("  ✅ COMPLETED")
     print("="*70)
-    print("  Total attempts: 10")
-    print("  Save your PATs at: https://qoder.com/account/integrations\n")
+    print("  Collect PATs at: https://qoder.com/account/integrations")
+    print("  Each account needs a PAT created manually.\n")
