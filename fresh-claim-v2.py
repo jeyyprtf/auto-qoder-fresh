@@ -6,22 +6,24 @@ import sys
 import json
 from pathlib import Path
 
-def patch_register_py():
+def patch_package():
     script_dir = Path(__file__).parent
-    patch_file = script_dir / "register.py"
-    if not patch_file.exists():
-        print("⚠️ register.py patch not found, skipping")
-        return True
     try:
         import qoder_autopilot
         pkg_dir = Path(qoder_autopilot.__file__).parent
-        target = pkg_dir / "register.py"
-        target.write_bytes(patch_file.read_bytes())
-        print(f"✅ Patched {target}")
-        return True
     except Exception as e:
-        print(f"❌ Patch failed: {e}")
+        print(f"❌ qoder-autopilot not installed: {e}")
         return False
+    ok = True
+    for f in ["register.py", "cli.py", "otp.py"]:
+        src = script_dir / f
+        if not src.exists():
+            continue
+        dst = pkg_dir / f
+        if dst.exists():
+            dst.write_bytes(src.read_bytes())
+            print(f"✅ Patched {dst.name}")
+    return ok
 
 def warp_switch():
     print("🔄 Switching WARP IP...")
@@ -33,7 +35,7 @@ def warp_switch():
     print("✅ Ready\n")
 
 if __name__ == "__main__":
-    if not patch_register_py():
+    if not patch_package():
         sys.exit(1)
     warp_switch()
     print("🚀 Starting 5 fresh accounts + claim Pro trial...\n")
