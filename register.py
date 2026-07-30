@@ -59,20 +59,39 @@ async def register_and_verify(
             tile_all_camoufox_windows()
             # Click "Sign up" link on the sign-in page
             log("   🔗 Clicking 'Sign up' link...")
-            await asyncio.sleep(2)  # wait for page to fully render
-            try:
-                signup_link = page.locator('a:has-text("Sign up"), a[href*="sign-up"]').first
-                await signup_link.scroll_into_view_if_needed()
-                await asyncio.sleep(1)
-                await signup_link.click(timeout=5000)
-            except Exception:
-                await page.evaluate("""() => {
-                    const links = document.querySelectorAll('a');
-                    for (const a of links) {
-                        if (a.textContent.trim().toLowerCase().includes('sign up')) {
-                            a.click(); return true;
+            await asyncio.sleep(3)
+            clicked = await page.evaluate("""() => {
+                const terms = ['sign up', 'register', 'create account', 'daftar'];
+                const candidates = document.querySelectorAll(
+                    'a, button, [role="button"], span, div'
+                );
+                for (const el of candidates) {
+                    const txt = (el.textContent || '').trim().toLowerCase();
+                    if (terms.some(t => txt === t)) {
+                        if (el.offsetParent !== null) {
+                            el.scrollIntoView({block: 'center', behavior: 'instant'});
+                            return new Promise(resolve => {
+                                setTimeout(() => {
+                                    const rect = el.getBoundingClientRect();
+                                    el.dispatchEvent(new MouseEvent('click', {
+                                        bubbles: true, cancelable: true, view: window,
+                                        clientX: rect.left + rect.width/2,
+                                        clientY: rect.top + rect.height/2,
+                                    }));
+                                    resolve(true);
+                                }, 200);
+                            });
                         }
                     }
+                }
+                return false;
+            }""")
+            if not clicked:
+                # Last resort: try href-based navigation
+                await page.evaluate("""() => {
+                    const a = document.querySelector('a[href*="sign-up"]');
+                    if (a) { a.click(); return true; }
+                    return false;
                 }""")
             await asyncio.sleep(3)
 
@@ -124,33 +143,34 @@ async def register_and_verify(
 
         # Continue → Step 2
         for attempt in range(5):
-            try:
-                # scroll button into view first
-                btn = page.locator('button[type="submit"]').first
-                await btn.scroll_into_view_if_needed()
-                await asyncio.sleep(1.5)
-                # Use JS click as primary (more reliable coordinates)
-                clicked = await page.evaluate("""() => {
-                    const btns = document.querySelectorAll('button[type="submit"]');
-                    for (const b of btns) {
-                        if (b.offsetParent !== null) {
-                            b.scrollIntoView({block: 'center'});
-                            setTimeout(() => b.click(), 100);
-                            return true;
+            clicked = await page.evaluate("""() => {
+                // Find by text content: try "Continue", "Sign up", "Submit" etc.
+                const terms = ['continue', 'sign up', 'submit', 'lanjut'];
+                const candidates = document.querySelectorAll(
+                    'button, [role="button"], .ant-btn, a, span, div'
+                );
+                for (const el of candidates) {
+                    const txt = (el.textContent || '').trim().toLowerCase();
+                    if (terms.some(t => txt === t)) {
+                        if (el.offsetParent !== null) {  // visible
+                            el.scrollIntoView({block: 'center', behavior: 'instant'});
+                            // Wait a frame then dispatch real mouse event
+                            return new Promise(resolve => {
+                                setTimeout(() => {
+                                    const rect = el.getBoundingClientRect();
+                                    el.dispatchEvent(new MouseEvent('click', {
+                                        bubbles: true, cancelable: true, view: window,
+                                        clientX: rect.left + rect.width/2,
+                                        clientY: rect.top + rect.height/2,
+                                    }));
+                                    resolve(true);
+                                }, 200);
+                            });
                         }
                     }
-                    return false;
-                }""")
-                if not clicked:
-                    await btn.click(force=True, timeout=5000)
-            except Exception:
-                await page.evaluate("""() => {
-                    const btns = document.querySelectorAll('button[type="submit"]');
-                    for (const b of btns) {
-                        if (b.offsetParent !== null) { b.click(); return; }
-                    }
-                }""")
-                await page.keyboard.press("Enter")
+                }
+                return false;
+            }""")
             await asyncio.sleep(3)
 
             # Check if step 2 appeared (password field visible)
@@ -179,25 +199,40 @@ async def register_and_verify(
             await asyncio.sleep(2)  # wait for validation
             log("   ✅ Password filled")
 
-            # Submit form via Enter key (most reliable, clicks correct submit button)
-            await asyncio.sleep(2)
-            await pw_input.press("Enter")
+            # Click Continue button by text content (most reliable with Camoufox)
             await asyncio.sleep(3)
-            log("   📤 Submitted (Enter key)")
-
-            # Double-check: also try JS click to find+click the real Continue button
-            await page.evaluate("""() => {
-                const all = document.querySelectorAll('button, [role="button"], .ant-btn');
-                for (const el of all) {
-                    const txt = el.textContent.trim().toLowerCase();
-                    if (txt === 'continue' || txt === 'sign up' || txt === 'submit') {
-                        el.scrollIntoView({block: 'center'});
-                        setTimeout(() => el.click(), 200);
-                        return el.textContent.trim();
+            clicked = await page.evaluate("""() => {
+                const terms = ['continue', 'sign up', 'submit', 'lanjut'];
+                const candidates = document.querySelectorAll(
+                    'button, [role="button"], .ant-btn, a, span, div'
+                );
+                for (const el of candidates) {
+                    const txt = (el.textContent || '').trim().toLowerCase();
+                    if (terms.some(t => txt === t)) {
+                        if (el.offsetParent !== null) {
+                            el.scrollIntoView({block: 'center', behavior: 'instant'});
+                            return new Promise(resolve => {
+                                setTimeout(() => {
+                                    const rect = el.getBoundingClientRect();
+                                    el.dispatchEvent(new MouseEvent('click', {
+                                        bubbles: true, cancelable: true, view: window,
+                                        clientX: rect.left + rect.width/2,
+                                        clientY: rect.top + rect.height/2,
+                                    }));
+                                    resolve(true);
+                                }, 200);
+                            });
+                        }
                     }
                 }
-                return null;
+                return false;
             }""")
+            if clicked:
+                log("   📤 Submitted (JS click by text)")
+            else:
+                await pw_input.press("Enter")
+                log("   📤 Submitted (Enter fallback)")
+            await asyncio.sleep(3)
         except Exception as e:
             log(f"   ⚠️ Playwright fill failed: {e}, trying JS fallback...")
             await asyncio.sleep(2)
@@ -280,36 +315,26 @@ async def register_and_verify(
         )
 
         if needs_verify:
-            # Click the verify button
-            clicked = False
-            for sel in [
-                "text=Click to verify",
-                "text=点击验证",
-                "text=verify",
-                "text=Verify",
-                '[class*="verify"]',
-                '[class*="captcha-btn"]',
-            ]:
-                try:
-                    await page.locator(sel).first.click(timeout=3000)
-                    clicked = True
-                    break
-                except Exception:
-                    continue
-            if not clicked:
-                await page.evaluate("""() => {
-                    const all = document.querySelectorAll('*');
-                    for (const el of all) {
-                        const txt = el.textContent.trim().toLowerCase();
-                        if (el.childNodes.length <= 3 &&
-                            (txt.includes('click to verify')
-                             || txt === 'verify'
-                             || txt.includes('点击验证')
-                             || txt.includes('sure you are human'))) {
-                            el.click(); return true;
+            # Click the "Click to verify" / captcha button by text
+            await page.evaluate("""() => {
+                const terms = ['click to verify', 'verify', 'sure you are human', '验证', '点击验证'];
+                const all = document.querySelectorAll('*');
+                for (const el of all) {
+                    const txt = (el.textContent || '').trim().toLowerCase();
+                    if (terms.some(t => txt.includes(t))) {
+                        if (el.offsetParent !== null) {
+                            el.scrollIntoView({block: 'center', behavior: 'instant'});
+                            setTimeout(() => {
+                                el.dispatchEvent(new MouseEvent('click', {
+                                    bubbles: true, cancelable: true, view: window
+                                }));
+                            }, 200);
+                            return true;
                         }
                     }
-                }""")
+                }
+                return false;
+            }""")
             await asyncio.sleep(3)
 
             # Solve captcha
