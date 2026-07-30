@@ -16,6 +16,8 @@ def patch_package():
     patches = [
         ("cli.py", pkg_dir / "cli.py"),
         ("cli_login.py", pkg_dir / "auth" / "cli_login.py"),
+        ("anti_vm.py", pkg_dir / "infra" / "anti_vm.py"),
+        ("machine_spoof.py", pkg_dir / "infra" / "machine_spoof.py"),
     ]
     for src_name, dst_path in patches:
         src = script_dir / src_name

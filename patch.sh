@@ -11,7 +11,7 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-for pair in "register.py:" "cli.py:" "otp.py:" "cli_login.py:auth"; do
+for pair in "register.py:" "cli.py:" "otp.py:" "cli_login.py:auth" "anti_vm.py:infra" "machine_spoof.py:infra"; do
     SRC_NAME="${pair%%:*}"
     SUBDIR="${pair##*:}"
     SRC="$SCRIPT_DIR/$SRC_NAME"
