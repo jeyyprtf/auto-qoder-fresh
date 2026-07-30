@@ -37,13 +37,21 @@ def warp_switch():
 if __name__ == "__main__":
     if not patch_package():
         sys.exit(1)
+    
+    cfg_path = Path(__file__).parent / "config.json"
+    try:
+        cfg = json.loads(cfg_path.read_text())
+    except Exception:
+        cfg = {}
+    count = cfg.get("account_count", 1)
+    
     warp_switch()
-    print("🚀 Starting 5 fresh accounts + claim Pro trial...\n")
+    print(f"🚀 Starting {count} account(s) + claim Pro trial...\n")
     
     accounts = []
-    for i in range(1, 6):
+    for i in range(1, count + 1):
         print("="*70)
-        print(f"Account #{i} / 5")
+        print(f"Account #{i} / {count}")
         print("="*70)
         print("(Browser will open — solve captcha + click buttons manually)")
         print()
@@ -62,7 +70,7 @@ if __name__ == "__main__":
             print("\n⚠️ Interrupted by user")
             break
         
-        if i < 5:
+        if i < count:
             delay = 120
             print(f"⏳ Waiting {delay}s before account {i+1}...")
             time.sleep(delay)
