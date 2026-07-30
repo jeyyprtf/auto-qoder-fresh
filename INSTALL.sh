@@ -6,24 +6,21 @@ echo "  QODER AUTO-REGIST FRESH - Installation"
 echo "============================================"
 echo ""
 
-echo "1️⃣  Installing qoder-autopilot (force install from git)..."
-pip install --force-reinstall "qoder-autopilot @ git+https://github.com/Daivageralda/qoder-autopilot.git"
+echo "1️⃣  Installing qoder-autopilot from MAIN branch..."
+pip uninstall -y qoder-autopilot 2>/dev/null || true
+pip install --force-reinstall "qoder-autopilot @ git+https://github.com/Daivageralda/qoder-autopilot.git@main"
 
 echo "2️⃣  Installing Python dependencies..."
 pip install pydantic>=2.0 python-dotenv>=1.0 requests>=2.28 faker>=20.0 playwright>=1.40 openai>=1.0 opencv-python-headless>=4.8 --quiet
 
 echo "3️⃣  Installing qoder-cli (npm)..."
-npm i -g @qoder-ai/qodercli --quiet
+npm i -g @qoder-ai/qodercli 2>/dev/null || true
 
 echo "4️⃣  Installing Playwright browsers..."
-playwright install chromium --with-deps || {
-    echo "⚠️  Chromium not supported, trying Firefox fallback..."
-    playwright install firefox --with-deps || echo "⚠️  Browsers may fail on unsupported OS"
-}
+playwright install chromium --with-deps 2>/dev/null || playwright install firefox --with-deps 2>/dev/null || echo "⚠️ Browser may fail on unsupported OS"
 
 echo "5️⃣  Checking configuration..."
 if [ ! -f config.json ]; then
-    echo "   Creating default config.json..."
     cat > config.json << 'CONF'
 {
   "worker_url": "https://mail-api.jujukaizen.web.id",
@@ -33,17 +30,12 @@ CONF
 fi
 
 echo "6️⃣  Testing installation..."
-pip show qoder-autopilot | head -3
-qoder-autopilot doctor 2>&1 | tail -5
+pip show qoder-autopilot | head -2
 
 echo ""
 echo "============================================"
 echo "  ✅ Installation Complete!"
 echo "============================================"
 echo ""
-echo "You can now run:"
+echo "Now run:"
 echo "  ./fresh-claim-v2.py"
-echo ""
-echo "Or register one account manually:"
-echo "  qoder-autopilot --manual-captcha -n 1"
-echo ""
