@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
-"""Qoder Fresh Autoregist v2 - Manual captcha mode, auto-config skip"""
-import subprocess, time, os
+"""Qoder Fresh Autoregist v2 - Manual captcha mode, non-interactive"""
+import subprocess
+import time
+import os
 
 def warp_switch():
     print("🔄 Switching WARP IP...")
     try:
         subprocess.run(["warp-cli", "disconnect"], check=True, capture_output=True)
-    except: pass
+    except Exception:
+        pass
     try:
         subprocess.run(["warp-cli", "connect"], check=True, capture_output=True)
     except Exception as e:
@@ -15,7 +18,6 @@ def warp_switch():
     print("✅ Ready\n")
 
 def run_qoder(cmd):
-    # Run with environment to skip interactive prompts
     env = os.environ.copy()
     env['PYTHONIOENCODING'] = 'utf-8'
     
@@ -39,10 +41,6 @@ if __name__ == "__main__":
         print("="*60)
         
         try:
-            # Spoof machine
-            out = run_qoder(["qoder-autopilot", "-n", "1", "--dry-run"])
-            print(out[-200:] if len(out) > 200 else out)
-            
             # Register via browser (manual captcha - MOST RELIABLE)
             out = run_qoder([
                 "qoder-autopilot", "-n", "1", 
@@ -53,15 +51,16 @@ if __name__ == "__main__":
             ])
             print(out[-500:] if len(out) > 500 else out)
             
-            # Claim trial  
+            # Claim trial
             out = run_qoder(["qoder-autopilot", "claim"])
             print(out[-500:] if len(out) > 500 else out)
             
             print(f"\n✅ Account #{i} DONE\n")
             
         except subprocess.CalledProcessError as e:
-            print(f"❌ ERROR account {i}: {e}")
-            print(e.stderr[-200:] if e.stderr else "")
+            print(f"❌ ERROR account {i}: Command failed")
+            stderr = e.stderr.decode() if isinstance(e.stderr, bytes) else str(e.stderr)
+            print(stderr[-200:] if len(stderr) > 200 else stderr)
             continue
         
         if i < 10:
